@@ -1,20 +1,55 @@
 import React, { Dispatch, SetStateAction, useState } from 'react'
-import { Button, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, Button, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import DatePicker from 'react-native-date-picker'
+import { pacienteType } from '../types'
 
 type Props = {
   modalVisible: boolean
   setModaVisible: Dispatch<SetStateAction<boolean>>
+  setPacientes: Dispatch<SetStateAction<pacienteType[]>>
 }
 
-const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible }) => {
+const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible, setPacientes }) => {
 
   const [paciente, setPaciente] = useState<string>('')
   const [propietario, setPropietario] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [telefono, setTelefono] = useState<string>('')
+  const [fecha, setFecha] = useState<Date>(new Date())
   const [sintomas, setSintomas] = useState<string>('')
-  const [date, setDate] = useState<Date>(new Date())
+
+  const handleCita = () => {
+    if ([paciente, propietario, email, telefono, sintomas, fecha].includes('')) {
+      Alert.alert(
+        'Error',
+        'Todos los campos son obligatorios', 
+      )
+      return
+    }
+
+    const id = Date.now
+
+    const nuevoPaciente:pacienteType = {
+      id,
+      paciente, 
+      propietario,
+      email, 
+      telefono,
+      fecha,
+      sintomas
+    }
+
+    setPacientes(content => [...content, nuevoPaciente]);
+    setModaVisible(content => !content)
+    setPaciente('')
+    setPropietario('')
+    setEmail('')
+    setTelefono('')
+    setFecha(new Date())
+    setSintomas('')
+    
+  }
+  
 
   return (
     <Modal
@@ -29,6 +64,13 @@ const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible }) => {
             Nueva {''}
             <Text style={styles.tituloBold}>Cita</Text>
           </Text>
+
+          <Pressable
+            style={styles.btnCancelar}
+            onPress={() => setModaVisible(current => !current)}
+          >
+            <Text style={styles.btnCancelarTexto}>X Cancelar</Text>
+          </Pressable>
 
           <View style={styles.campo}>
             <Text
@@ -87,8 +129,8 @@ const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible }) => {
               placeholderTextColor={'#666'}
               keyboardType='phone-pad'
               maxLength={10}
-              style={styles.input} 
-              />
+              style={styles.input}
+            />
           </View>
 
           <View style={styles.campo}>
@@ -112,14 +154,25 @@ const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible }) => {
             <Text
               style={styles.label}
             >
-              Síntomas
+              Fecha
             </Text>
+
+            <View style={styles.fechaContenedor}>
+              <DatePicker
+                date={fecha}
+                onDateChange={setFecha}
+                locale='es'
+              />
+            </View>
           </View>
 
-          <Button
-            title='Presiona aquí'
-            onPress={() => setModaVisible(current => !current)}
-          ></Button>
+          <Pressable
+            style={styles.btnNuevaCita}
+            onPress={handleCita}
+          >
+            <Text style={styles.btnNuevaCitaTexto}>Agregar Paciente</Text>
+          </Pressable>
+
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -141,6 +194,21 @@ const styles = StyleSheet.create({
   tituloBold: {
     fontWeight: '900'
   },
+  btnCancelar: {
+    marginTop: 20,
+    backgroundColor: '#5827A4',
+    marginHorizontal: 30,
+    marginVertical: 30,
+    padding: 20,
+    borderRadius: 10,
+  },
+  btnCancelarTexto: {
+    color: '#FFF',
+    textAlign: 'center',
+    fontWeight: '900',
+    fontSize: 16,
+    textTransform: 'uppercase'
+  },
   campo: {
     marginTop: 10,
     marginHorizontal: 30,
@@ -159,7 +227,26 @@ const styles = StyleSheet.create({
   },
   sintomasInput: {
     height: 80,
-  }
+  },
+  fechaContenedor: {
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: '#FFF',
+  },
+  btnNuevaCita:{
+    marginVertical: 50,
+    backgroundColor: '#F59E0B',
+    paddingVertical: 15,
+    marginHorizontal: 30,
+    borderRadius: 10,
+  },
+  btnNuevaCitaTexto: {
+    textAlign: 'center',
+    color: '#5827A4',
+    textTransform: 'uppercase',
+    fontWeight: '700',
+    fontSize: 16,
+  },
 })
 
 export default Formulario

@@ -6,13 +6,24 @@
  */
 
 import React, { useState } from 'react';
-import { Button, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text } from 'react-native';
+import { Button, FlatList, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text } from 'react-native';
 import Formulario from './src/Components/Formulario';
+import Paciente from './src/Components/Paciente';
+import { pacienteType } from './src/types';
+
+
 
 function App(): JSX.Element {
 
   const [modalVisible, setModalVisible] = useState<boolean>(false)
- 
+  const [pacientes, setPacientes] = useState<Array<pacienteType>>([])
+  const [pacienteEdicion, setPacienteEdicion] = useState<pacienteType>()
+
+  const pacienteEditar = (id: () => number) => {
+    const [pacienteFiltered] = pacientes.filter(el => el.id === id)
+    setPacienteEdicion(pacienteFiltered)
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -30,7 +41,34 @@ function App(): JSX.Element {
           <Text style={styles.btnTextoNuevaCita}>Nueva Cita</Text>
         </Pressable>
 
-        <Formulario modalVisible={modalVisible} setModaVisible={setModalVisible}/>
+        {
+          pacientes.length === 0
+            ? (
+              <Text style={styles.noPacientes}>No hay pacientes aún</Text>
+            )
+            : (
+              <FlatList
+                style={styles.listado}
+                data={pacientes}
+                keyExtractor={item => `${item.id}`}
+                renderItem={(item) => {
+                  return (
+                    <Paciente
+                      item={item}
+                      setModalVisible={setModalVisible}
+                      pacienteEditar={pacienteEditar}
+                    />
+                  )
+                }}
+              />
+            )
+        }
+
+        <Formulario
+          modalVisible={modalVisible}
+          setModaVisible={setModalVisible}
+          setPacientes={setPacientes}
+        />
 
       </ScrollView>
     </SafeAreaView>
@@ -40,7 +78,7 @@ function App(): JSX.Element {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F3F4F6',
-    flex: 1
+    flex: 1,
   },
   titulo: {
     textAlign: 'center',
@@ -65,7 +103,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     textTransform: 'uppercase'
-  }
+  },
+  noPacientes: {
+    marginTop: 40,
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '600'
+  },
+  listado: {
+    marginTop: 50,
+    marginHorizontal: 30
+  },
 });
 
 export default App;
