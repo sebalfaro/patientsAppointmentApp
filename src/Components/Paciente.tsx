@@ -4,35 +4,55 @@ import { pacienteType } from '../types'
 import { dateFormatter } from '../helpers'
 
 interface Props {
-  item: ListRenderItemInfo<pacienteType>,
-  setModalVisible: Dispatch<SetStateAction<boolean>>,
-  pacienteEditar: (id: () => number) => void
+  item: ListRenderItemInfo<pacienteType>;
+  setModalVisible: Dispatch<SetStateAction<boolean>>;
+  pacienteEditar: (id: () => number) => void;
+  pacienteEliminar: (id: () => number) => void;
+  setModalPaciente: Dispatch<SetStateAction<boolean>>;
+  setPacienteEdicion: Dispatch<SetStateAction<pacienteType | null>>
 }
 
-const Paciente = ({ item, setModalVisible, pacienteEditar }: Props) => {
+const Paciente = ({
+  item,
+  setModalVisible,
+  pacienteEditar,
+  pacienteEliminar,
+  setModalPaciente,
+  setPacienteEdicion
+}: Props) => {
   const { item: { paciente, fecha, id } } = item
 
   return (
-    <View style={styles.contenedor}>
-      <Text style={styles.label}>Paciente</Text>
-      <Text style={styles.texto}>{paciente}</Text>
-      <Text style={styles.fecha}>{dateFormatter(fecha)}</Text>
+    <Pressable
+      onPress={() => {
+        setModalPaciente(true)
+        setPacienteEdicion(item.item)
+      }}
+    >
+      <View style={styles.contenedor}>
+        <Text style={styles.label}>Paciente</Text>
+        <Text style={styles.texto}>{paciente}</Text>
+        <Text style={styles.fecha}>{dateFormatter(fecha)}</Text>
 
-      <View style={styles.contenedorBtns}>
-        <Pressable
-          style={[styles.btn, styles.btnEditar]}
-          onLongPress={() => {
-            setModalVisible(true)
-            pacienteEditar(id)
-          }}
-        >
-          <Text style={styles.btnTexto}>Editar</Text>
-        </Pressable>
-        <Pressable style={[styles.btn, styles.btnEliminar]}>
-          <Text style={styles.btnTexto}>Eliminarr</Text>
-        </Pressable>
+        <View style={styles.contenedorBtns}>
+          <Pressable
+            style={[styles.btn, styles.btnEditar]}
+            onPress={() => {
+              setModalVisible(true)
+              pacienteEditar(id)
+            }}
+          >
+            <Text style={styles.btnTexto}>Editar</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.btn, styles.btnEliminar]}
+            onPress={() => pacienteEliminar(id)}
+          >
+            <Text style={styles.btnTexto}>Eliminar</Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </Pressable>
   )
 }
 
@@ -79,7 +99,8 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontSize: 12,
     color: '#FFF'
-  }
+  },
+
 })
 
 export default Paciente

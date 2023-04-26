@@ -1,15 +1,27 @@
-import React, { Dispatch, SetStateAction, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Alert, Button, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import DatePicker from 'react-native-date-picker'
 import { pacienteType } from '../types'
 
 type Props = {
+  cerrarModal: () => void
   modalVisible: boolean
-  setModaVisible: Dispatch<SetStateAction<boolean>>
+  // setModaVisible: Dispatch<SetStateAction<boolean>>
   setPacientes: Dispatch<SetStateAction<pacienteType[]>>
+  pacientes: Array<pacienteType>
+  pacienteEdicion: pacienteType | null
+  setPacienteEdicion: Dispatch<SetStateAction<pacienteType | null>>
 }
 
-const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible, setPacientes }) => {
+const Formulario: React.FC<Props> = ({
+  modalVisible,
+  // setModaVisible,
+  pacientes,
+  setPacientes,
+  pacienteEdicion,
+  setPacienteEdicion,
+  cerrarModal,
+}) => {
 
   const [paciente, setPaciente] = useState<string>('')
   const [propietario, setPropietario] = useState<string>('')
@@ -18,38 +30,72 @@ const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible, setPaciente
   const [fecha, setFecha] = useState<Date>(new Date())
   const [sintomas, setSintomas] = useState<string>('')
 
+  useEffect(() => {
+    if (pacienteEdicion && Object.keys(pacienteEdicion ?? {}).length > 0) {
+      setPaciente(pacienteEdicion.paciente)
+      setPropietario(pacienteEdicion.propietario)
+      setEmail(pacienteEdicion.email)
+      setTelefono(pacienteEdicion.telefono)
+      setFecha(pacienteEdicion.fecha)
+      setSintomas(pacienteEdicion.sintomas)
+    }
+    return ()=>{
+      setPacienteEdicion(null)
+    }
+  }, [pacienteEdicion])
+
+
+
   const handleCita = () => {
     if ([paciente, propietario, email, telefono, sintomas, fecha].includes('')) {
       Alert.alert(
         'Error',
-        'Todos los campos son obligatorios', 
+        'Todos los campos son obligatorios',
       )
       return
     }
 
-    const id = Date.now
 
-    const nuevoPaciente:pacienteType = {
-      id,
-      paciente, 
-      propietario,
-      email, 
-      telefono,
-      fecha,
-      sintomas
+    if (pacienteEdicion?.id) {
+      const nuevoPaciente: pacienteType = {
+        id: pacienteEdicion.id,
+        paciente,
+        propietario,
+        email,
+        telefono,
+        fecha,
+        sintomas
+      }
+      const pacientesActualizados = pacientes.map(el => el.id === nuevoPaciente.id
+        ? nuevoPaciente
+        : el)
+      setPacientes(pacientesActualizados)
+      setPacienteEdicion(null)
+    } else {
+      const nuevoPaciente: pacienteType = {
+        id: Date.now,
+        paciente,
+        propietario,
+        email,
+        telefono,
+        fecha,
+        sintomas
+      }
+      setPacientes(content => [...content, nuevoPaciente]);
     }
 
-    setPacientes(content => [...content, nuevoPaciente]);
-    setModaVisible(content => !content)
+
+    // setModaVisible(content => !content)
+    cerrarModal()
     setPaciente('')
     setPropietario('')
     setEmail('')
     setTelefono('')
     setFecha(new Date())
     setSintomas('')
-    
+
   }
-  
+
 
   return (
     <Modal
@@ -61,13 +107,21 @@ const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible, setPaciente
           <Text
             style={styles.titulo}
           >
-            Nueva {''}
+            {pacienteEdicion?.id ? 'Editar' : 'Nueva'} {''}
             <Text style={styles.tituloBold}>Cita</Text>
           </Text>
 
           <Pressable
             style={styles.btnCancelar}
-            onPress={() => setModaVisible(current => !current)}
+            onPress={() => {
+              cerrarModal()
+              setPaciente('')
+              setPropietario('')
+              setEmail('')
+              setTelefono('')
+              setFecha(new Date())
+              setSintomas('')          
+            }}
           >
             <Text style={styles.btnCancelarTexto}>X Cancelar</Text>
           </Pressable>
@@ -170,7 +224,7 @@ const Formulario: React.FC<Props> = ({ modalVisible, setModaVisible, setPaciente
             style={styles.btnNuevaCita}
             onPress={handleCita}
           >
-            <Text style={styles.btnNuevaCitaTexto}>Agregar Paciente</Text>
+            <Text style={styles.btnNuevaCitaTexto}>{pacienteEdicion?.id ? 'Editar' : 'Agregar'} Paciente</Text>
           </Pressable>
 
         </ScrollView>
@@ -233,7 +287,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#FFF',
   },
-  btnNuevaCita:{
+  btnNuevaCita: {
     marginVertical: 50,
     backgroundColor: '#F59E0B',
     paddingVertical: 15,
